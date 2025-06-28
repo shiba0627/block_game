@@ -1,33 +1,65 @@
 import serial
 import time
 from config import COM
+
 def init_serial():
     print('Aruduinoと接続中...')
     global ser
     ser = serial.Serial(COM, 38400, timeout=1)
     time.sleep(2)
     print('接続完了')
-def joy_direction():
-    x, y = joystick_read()
+
+def read_contller():
+    x, y, a, b = joystick_read()
     if x < 256:
         print('left')
-        return 0
+        return 0, a, b
     elif x > 768:
         print('right')
-        return 2
-def joystick_read():
-    ser.write(b'a')#コマンド送信
-    xdata = ser.read(2)            # 2バイト受信
-    ydata = ser.read(2)            # 2バイト受信
-    reply_read()
-    if len(xdata) == 2:
-        x = (xdata[0] << 8) | xdata[1]  # 上位バイト << 8 + 下位バイト
+        return 2, a, b
     else:
-        print("受信失敗")
+        print('center')
+        return 1, a, b
+    
+def joystick_read():
+    ser.write(b'a')#コントローラーの状態要求コマンド
+    xdata = ser.read(2)# 2バイト受信, ジョイスティックX軸の値
+    ydata = ser.read(2)# 2バイト受信, ジョイスティックY軸の値
+    button1 = ser.read(1)# 1バイト受信, ボタン1の状態
+    button2 = ser.read(1)# 1バイト受信, ボタン2の状態
+    reply_read()#NACKorACKを読み取り
+
+    #初期値の設定
+    x = 0
+    y = 0
+    button1_state = -1#0:押されている, 1:押されていない, -1:未受信
+    button2_state = -1
+
+    #X軸
+    if len(xdata) == 2:
+        x = (xdata[0] << 8) | xdata[1]  # 上位バイトを8bitシフトし、下位バイトと論理和をとる
+    else:
+        print("X軸データ受信失敗")
+
+    #Y軸
     if len(ydata) == 2:
         y = (ydata[0] << 8) | ydata[1]
-        #print(f"{x},{y}")
-    return x, y
+    else:
+        print("Y軸データ受信失敗")
+
+    #ボタン1
+    if len(button1) == 1:
+        button1_state = button1[0]
+    else:
+        print("ボタン1データ受信失敗")
+
+    #ボタン2
+    if len(button2) == 1:
+        button2_state = button2[0]
+    else:
+        print("ボタン2データ受信失敗")
+
+    return x, y, button1_state, button2_state
 
 def LED_0():
     command = b'b'
@@ -75,8 +107,8 @@ def main():
                 print('終了')
                 break
             elif key == 'a':
-                x, y = joystick_read()
-                print(f'(x,y)=({x},{y})')
+                x, y, a, b = joystick_read()
+                print(f'(x,y)=({x},{y}), a:{a},b:{b}')
             elif key == '0':
                 LED_0()
             elif key == '1':

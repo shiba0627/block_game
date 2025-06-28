@@ -8,7 +8,7 @@ FONT_COLOR = (0, 0, 255)
 #ボール設定
 BALL_RADIUS = 8#ボール半径
 BALL_COLOR = (255, 255, 255)#ボール色
-BALL_SPEED = 5#ボールの速度(ウィンドウの更新で何pixel進むか)
+BALL_SPEED = 3#ボールの速度(ウィンドウの更新で何pixel進むか)
 
 #ラケットの設定
 RACKET_WIDTH = 100#ラケット幅

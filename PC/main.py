@@ -44,7 +44,6 @@ def main():
         if key[pygame.K_s]:
             pause = False
         
-        
         if not pause and lives > 0:
             if input_data["direction"] == 'left':
                 racket.move_left()
@@ -53,7 +52,7 @@ def main():
             miss = ball.update(racket)
             racket.update()
 
-        joy = com.joy_direction()
+        joy, a, b = com.read_contller()
         if not pause and lives > 0:
             if joy == 0:
                 racket.move_left()
@@ -62,6 +61,11 @@ def main():
             miss = ball.update(racket)
             racket.update()
         
+        if a == 0:
+            pause = True
+        if b == 0:
+            pause = False
+            
         racket.draw(screen)
         ball.draw(screen)
 
